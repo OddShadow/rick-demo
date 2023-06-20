@@ -1,32 +1,33 @@
-package org.example.d;
+package org.example.bdemo._reentrantlock;
 
 /**
- * ReentrantLock 写一个成程序完成 A-0 B-1 交替执行各10次数
+ * 实现功能
+ *    A-打印1 B-打印0  交替执行各10次
  */
-// 写在 @Test 注解上有问题
-public class Demo {
+public class ReentrantLockDemo {
     public static void main(String[] args) {
-        Share share = new Share();
+        
+        ReentrantLockShare reentrantLockShare = new ReentrantLockShare();
+        
         new Thread(() -> {
             for (int i = 0; i < 10; i++) {
                 try {
-                    share.incr();
-//                    System.out.println(Thread.currentThread().getName() + "==>" + i);
+                    reentrantLockShare.incr();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
         }, "A=Thread").start();
+        
         new Thread(() -> {
             for (int i = 0; i < 10; i++) {
                 try {
-                    share.decr();
-//                    System.out.println(Thread.currentThread().getName() + "==>" + i);
+                    reentrantLockShare.decr();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
         }, "B=Thread").start();
+        
     }
-    
 }

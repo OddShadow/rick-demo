@@ -1,8 +1,9 @@
-package org.example.c;
+package org.example.bdemo._synchronized;
 
-class Share {
+class SynchronizedShare {
+    
     private int number = 0;
-    // 在资源类操作方法 1.判断 2.干活 3.通知
+    
     public synchronized void incr() throws InterruptedException {
         // 防止虚假唤醒
         while (number != 0) {
@@ -12,6 +13,7 @@ class Share {
         System.out.println(Thread.currentThread().getName() + "::" + number);
         this.notifyAll();
     }
+    
     public synchronized void decr() throws InterruptedException {
         // 防止虚假唤醒
         while (number != 1) {
@@ -21,4 +23,5 @@ class Share {
         System.out.println(Thread.currentThread().getName() + "::" + number);
         this.notifyAll();
     }
+    
 }

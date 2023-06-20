@@ -1,10 +1,14 @@
-package org.example.b;
+package org.example.ademo._reentrantlock;
 
 import java.util.concurrent.locks.ReentrantLock;
 
-public class Ticket {
-    private int number = 30;
+public class ReentrantLockTicket {
+    
+    private static final long TOTAL_NUMBER = 20000L;
+    public long number = TOTAL_NUMBER;
+    
     private final ReentrantLock lock = new ReentrantLock();
+    
     public void sale() {
         lock.lock();
         try {
@@ -15,4 +19,5 @@ public class Ticket {
             lock.unlock();
         }
     }
+    
 }

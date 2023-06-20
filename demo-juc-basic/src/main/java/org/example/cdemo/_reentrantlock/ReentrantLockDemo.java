@@ -1,37 +1,44 @@
-package org.example.f;
+package org.example.cdemo._reentrantlock;
 
 /**
  * 线程间定制化通信
+ * 实现功能
+ *    每天 吃3顿饭 睡2次觉 学1次习
  */
-public class Demo {
+public class ReentrantLockDemo {
     public static void main(String[] args) {
+        
         ShareResource shareResource = new ShareResource();
+        
         new Thread(() -> {
-            for (int i = 0; i < 10; i++) {
+            while (true) {
                 try {
-                    shareResource.print5(i);
+                    shareResource.doSomethingA(3);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
         }, "AAA").start();
+        
         new Thread(() -> {
-            for (int i = 0; i < 10; i++) {
+            while (true) {
                 try {
-                    shareResource.print10(i);
+                    shareResource.doSomethingB(2);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
         }, "BBB").start();
+        
         new Thread(() -> {
-            for (int i = 0; i < 10; i++) {
+            while (true) {
                 try {
-                    shareResource.print15(i);
+                    shareResource.doSomethingC(1);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
         }, "CCC").start();
+        
     }
 }
