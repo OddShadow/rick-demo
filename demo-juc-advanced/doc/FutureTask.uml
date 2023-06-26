@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>java.lang.Runnable</OriginalElement>
+  <nodes>
+    <node x="61.0" y="134.5">java.util.concurrent.RunnableFuture</node>
+    <node x="278.0" y="32.0">java.util.concurrent.Future</node>
+    <node x="61.5" y="237.0">java.util.concurrent.FutureTask</node>
+    <node x="67.0" y="-46.0">java.lang.FunctionalInterface</node>
+    <node x="103.0" y="32.0">java.lang.Runnable</node>
+    <node x="354.5" y="110.0">java.util.concurrent.CompletableFuture</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="java.util.concurrent.RunnableFuture" target="java.util.concurrent.Future" relationship="INTERFACE_GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="166.0" y="85.0" />
+      <point x="311.5" y="85.0" />
+      <point x="-33.5" y="14.0" />
+    </edge>
+    <edge source="java.lang.Runnable" target="java.lang.FunctionalInterface" relationship="REALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="java.util.concurrent.FutureTask" target="java.util.concurrent.RunnableFuture" relationship="REALIZATION">
+      <point x="0.0" y="-38.5" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="java.util.concurrent.RunnableFuture" target="java.lang.Runnable" relationship="INTERFACE_GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="java.util.concurrent.CompletableFuture" target="java.util.concurrent.Future" relationship="REALIZATION">
+      <point x="-109.0" y="-38.5" />
+      <point x="17.0" y="14.0" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic" zoom="0.9600000000000002" showDependencies="false" x="408.9375" y="109.0" />
+  <SelectedNodes>
+    <node>java.util.concurrent.CompletableFuture</node>
+  </SelectedNodes>
+  <Categories>
+    <Category>Constructors</Category>
+  </Categories>
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

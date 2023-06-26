@@ -11,6 +11,7 @@
 
     <modules>
         <module>demo-juc-basic</module>
+        <module>demo-juc-advanced</module>
         <module>demo-juc-queue</module>
     </modules>
 
