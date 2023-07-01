@@ -97,13 +97,36 @@ Java 排查死锁
 1. 查看 java 进程`jps -l` 和 排查进程死锁 `jstack ***`
 2. 视图 `jconsole`
 
-## 3. LockSupport 和 线程中断
+## 5. LockSupport 和 线程中断
 
-中断机制
+```java
+java.util.concurrent.locks.LockSupport
+void interrupt() // 设置线程中断状态=true
+static void interrupted() // 判断线程是否被中断 并 清除当前中断状态即中断状态=false
+boolean isInterrupted() // 判断线程是否被中断，即返回中断状态值
+```
 
-一个线程不应该由其它线程【强制中断】或【停止】，而是应该由线程本身自行停止，所以 `Thread.stop()` `Thread.suspend()` `Thread.resume()` 已过时
+### 5.1 线程中断机制
+
+一个线程不应该由其它线程【强制中断】或【停止】，而是应该由线程本身自行停止，
+所以 `thread.stop()` `thread.suspend()` `thread.resume()` 已过时
 Java 采取了【中断标识协商机制】
 中断只是以一种协商机制，Java 没有增加任何中断语法，中断过程由程序员自己实现
+
+### 5.2 停止运行中的线程的方法
+
+除去已经过时的线程强制中断其它线程的方法【本质都是协商机制，只是协商的标志位不同】
+
+1. `volatile` 变量实现 - demo【`org.example.demo_6.a_stopthreadmethod.Method01`】
+2. `AtomicBoolean` 实现 - demo【`org.example.demo_6.a_stopthreadmethod.Method02`】
+3. `Thread` 类自带的中断 api 实例方法实现 - demo【`org.example.demo_6.a_stopthreadmethod.Method02`】
+
+### 5.3 线程中断标识协商机制注意点
+
+1. `void interrupt()` 【仅仅设置指定线程 `flag=true` 不会影响指定线程的任何状态】，需要自己编写代码判断处理 - dmeo【`org.example.demo_6.b_important.Point01`】
+2. 中断不活动的线程不会产生任何影响，返回 `false` - demo【`org.example.demo_6.b_important.Point02`】
+3. 如果线程处于阻塞状态，`sleep` `wait` `join` 在别的线程中调用阻塞线程的 `void interrupt()` 方法，阻塞线程立刻退出阻塞状态，【中断状态被清除】，并抛出 `InterruptedException` 异常 - demo【`org.example.demo_6.b_important.Point03`】
+4. 静态方法 `static void interrupted()`  判断线程是否被中断 并 清除当前中断状态即 中断状态 = false - demo 【`org.example.demo_6.b_important.Point04`】
 
 ## 6. Java 内存模型 - JMM - Java Memory Model
 
