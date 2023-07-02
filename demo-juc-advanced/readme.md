@@ -128,6 +128,28 @@ Java 采取了【中断标识协商机制】
 3. 如果线程处于阻塞状态，`sleep` `wait` `join` 在别的线程中调用阻塞线程的 `void interrupt()` 方法，阻塞线程立刻退出阻塞状态，【中断状态被清除】，并抛出 `InterruptedException` 异常 - demo【`org.example.demo_6.b_important.Point03`】
 4. 静态方法 `static void interrupted()`  判断线程是否被中断 并 清除当前中断状态即 中断状态 = false - demo 【`org.example.demo_6.b_important.Point04`】
 
+### 5.4 LockSupport 和 线程等待唤醒机制
+
+用来创建锁和其他同步类的基本线程阻塞原语
+`park()`用来阻塞线程 `unpark()` 用来接触阻塞线程
+同样的，`Object`的 `wait()` 和 `notify()`
+`JUC` 的 `await()` 和 `signal()`
+
+#### `Object` 和 `JUC` 必要条件 
+
+1. 【休眠方法和唤醒方法必须同步】否则抛出 `java.lang.IllegalMonitorStateException`
+2. 【休眠方法必须先于唤醒方法之前调用】否则线程无限休眠
+
+#### `LockSupport` 新方法
+
+```java
+static void park() // 除非 permit 可用，否则阻塞当前线程
+static void unpark(Thread thread) // 如果给定线程阻塞，为其发放 permit
+```
+
+`LockSupport`使用了一种 `Permit` 的概念完成阻塞线程和唤醒线程功能，每个线程都有一个 `permit`，但是于 `Semaphore`不同的地方是，`permit`累加上限为 1
+不需要同步代码块，也无需考虑 休眠方法 和 唤醒方法 先后顺序
+
 ## 6. Java 内存模型 - JMM - Java Memory Model
 
 ### 1. 面试题
