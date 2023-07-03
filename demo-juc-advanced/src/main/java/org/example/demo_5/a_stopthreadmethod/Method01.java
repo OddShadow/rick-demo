@@ -1,17 +1,15 @@
-package org.example.demo_6.a_stopthreadmethod;
-
-import java.util.concurrent.atomic.AtomicBoolean;
+package org.example.demo_5.a_stopthreadmethod;
 
 import static org.example.utils.CpuUtils.doTask;
 
-public class Method02 {
+public class Method01 {
 
-    private static final AtomicBoolean atomicBoolean = new AtomicBoolean(false);
+    private static volatile boolean isStop = false;
 
     public static void main(String[] args) {
         new Thread(() -> {
             while (true) {
-                if (atomicBoolean.get()) {
+                if (isStop) {
                     System.out.println("end===");
                     break;
                 }
@@ -21,6 +19,6 @@ public class Method02 {
 
         doTask(1000L);
 
-        atomicBoolean.set(true);
+        isStop = true;
     }
 }

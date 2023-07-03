@@ -1,4 +1,4 @@
-package org.example.demo_6.a_stopthreadmethod;
+package org.example.demo_5.a_stopthreadmethod;
 
 import static org.example.utils.CpuUtils.doTask;
 

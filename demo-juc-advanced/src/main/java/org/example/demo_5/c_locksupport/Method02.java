@@ -1,4 +1,4 @@
-package org.example.demo_6.c_locksupport;
+package org.example.demo_5.c_locksupport;
 
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;

@@ -1,4 +1,4 @@
-package org.example.demo_6.c_locksupport;
+package org.example.demo_5.c_locksupport;
 
 import static org.example.utils.CpuUtils.doTask;
 

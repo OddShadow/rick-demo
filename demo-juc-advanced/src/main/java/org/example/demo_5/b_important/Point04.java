@@ -1,4 +1,4 @@
-package org.example.demo_6.b_important;
+package org.example.demo_5.b_important;
 
 public class Point04 {
     public static void main(String[] args) {

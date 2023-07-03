@@ -1,12 +1,12 @@
-package org.example.demo_6.c_locksupport;
+package org.example.demo_5.c_locksupport;
 
 import static org.example.utils.CpuUtils.doTask;
 
-// object 完成线程同步
-public class Method01 {
+public class Method01Exception02 {
     public static void main(String[] args) {
         Object obj = new Object();
         new Thread(() -> {
+            doTask(800); // notify 比 wait 先调用, 程序无限休眠
             synchronized (obj) {
                 System.out.printf("%s::阻塞::%n", Thread.currentThread().getName());
                 try {
