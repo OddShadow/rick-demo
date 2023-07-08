@@ -406,3 +406,72 @@ CAS 是实现自旋锁的基础，利用 CPU 指令保证了操作的原子性�
 
 1. 循环时间长导致开销过大
 2. ABA 问题 【比较值虽然相等，但是可能 A 是被修改了 两次，先改成 B，再改回 A】
+   解决方法可以加入 stamped ，Java 实现可以用 
+   `AtomicStampedReference` 记录修改过几次
+   `AtomicMarkableReference` 记录是否修改
+
+## 9. 原子操作类
+
+```java
+AtomicBoolean
+AtomicInteger
+AtomicIntegerArray
+AtomicIntegerFieldUpdater
+AtomicLong
+AtomicLongArray
+AtomicLongFieldUpdater
+AtomicMarkableReference
+AtomicReference
+AtomicReferenceArray
+AtomicReferenceFieldUpdater
+AtomicStampedReference
+DoubleAccumulator
+DoubleAdder
+LongAccumulator
+LongAdder
+```
+
+1. 基本类型原子类
+
+   - `AtomicBoolean`
+   - `AtomicInteger`
+   - `AtomicLong`
+
+   ```java
+   public final int get();
+   public final int getAndSet(int newValue);
+   public final int getAndIncrement();
+   public final int getAndDecrement();
+   public final int getAndAdd(int delta);
+   boolean compareAndSet(int expect, in update);
+   ```
+
+2. 数组类型原子类
+
+   - `AtomicIntegerArray`
+   - `AtomicLongArray`
+   - `AtomicReferenceArray`
+
+3. 引用类型原子类
+
+   - `AtomicReference`
+   - `AtomicStampedReference`
+   - `AtomicMarkableReference`
+
+4. 对象的属性修改原子类
+
+   - `AtomicIntegerFieldUpdater`
+   - `AtomicLongFieldUpdater`
+   - `AtomicReferenceFieldUpdater`
+
+   以线程安全的方式操作非线程安全对象中指定的 `volatile int` `volatile long` `volatile 引用`
+
+   1. 更新的对象必须使用 `public volatile` 修饰
+   2. 因为对象的属性修改类型原子类都是抽象类，所以每次使用都必须使用静态方法 `newUpdater()` 创建更新器，并设置要更新的类和属性
+
+5. 原子操作增强类原理深度解析
+
+## 10. ThreadLocal
+
+
+
