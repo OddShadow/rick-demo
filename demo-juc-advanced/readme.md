@@ -473,5 +473,92 @@ LongAdder
 
 ## 10. ThreadLocal
 
+## 11. Java 对象内存布局和对象头
 
+问题探讨：`Object obj = new Object()` 占用多少内存空间
+
+HotSpot 虚拟机中，对象在【堆内存】中的存储布局分为三个部分：
+
+1. 【对象头 Header】
+   - 【对象标记 Mark Word】【存储 哈希码，GC 标记，GC 次数，同步锁标记，偏向锁持有者】【占用8个字节】
+   - 【类元信息（类型指针）Class Pointer 】组成【指向方法区的类元 Klass 信息】【不考虑压缩指针，占用8个字节】
+2. 【实例数据 Instance Data】【存放类的 Field 数据信息，包括父类 Field 信息】
+3. 【对齐填充 Padding】【保证对象存储为 8 个字节的倍数】
+
+64 bit 虚拟机
+
+|          |                             |                   |          |              |                    |                  |
+| -------- | --------------------------- | ----------------- | -------- | ------------ | ------------------ | ---------------- |
+| 锁状态   | 56 bit - 1                  | 56 bit - 2        |          |              |                    |                  |
+|          | 25bit                       | 31 bit            | 1 bit    | 4 bit        | 1 bit - 是否偏向锁 | 2 bit - 锁标志位 |
+| 无锁     | unused                      | hashcode          | cms_free | 对象分代年龄 | 0                  | 01               |
+| 偏向锁   | threadId-54bit-偏向锁线程ID | epoch-2bit-时间戳 | cms_free | 对象分代年龄 | 1                  | 01               |
+| 轻量级锁 | 指向栈中锁的记录的指针      | ==>               | ==>      | ==>          | ==\|               | 00               |
+| 重量级锁 | 指向重量级锁的指针          | ==>               | ==>      | ==>          | ==\|               | 10               |
+| GC 标志  | 空                          | ==>               | ==>      | ==>          | ==\|               | 11               |
+
+工具 - JOL - 分析对象在 JVM 中的大小和分布
+
+```xml
+<dependency>
+    <groupId>org.openjdk.jol</groupId>
+    <artifactId>jol-core</artifactId>
+    <version>0.14</version>
+</dependency>
+```
+
+对 `Object obj  = new Object()`
+
+```java
+java.lang.Object object internals:
+ OFFSET  SIZE   TYPE DESCRIPTION                               VALUE
+      0     4        (object header)                           01 00 00 00 (00000001 00000000 00000000 00000000) (1)
+      4     4        (object header)                           00 00 00 00 (00000000 00000000 00000000 00000000) (0)
+      8     4        (object header)                           e5 01 00 f8 (11100101 00000001 00000000 11111000) (-134217243)
+     12     4        (loss due to the next object alignment)
+Instance size: 16 bytes
+Space losses: 0 bytes internal + 4 bytes external = 4 bytes total
+```
+
+对 `CustomizedObject customizedObject = new CustomizedObject()`
+
+```java
+org.example.demo_11.CustomizedObject object internals:
+ OFFSET  SIZE       TYPE DESCRIPTION               VALUE
+      0     4            (object header)           01 00 00 00 (00000001 00000000 00000000 00000000) (1)
+      4     4            (object header)           00 00 00 00 (00000000 00000000 00000000 00000000) (0)
+      8     4            (object header)           db 23 01 f8 (11011011 00100011 00000001 11111000) (-134143013)
+     12     4        int  CustomizedObject.age     0
+     16     4   java.lang.String CustomizedObject.name    null
+     20     4            (loss due to the next object alignment)
+Instance size: 24 bytes
+Space losses: 0 bytes internal + 4 bytes external = 4 bytes total
+```
+
+压缩指针
+
+指对象头的类型指针本应该是8个字节
+使用 JVM 指令 `-XX:+PrintCommandLineFlags` 可以打印 JVM 默认参数
+`-XX:InitialHeapSize=536064960 -XX:MaxHeapSize=8577039360 -XX:+PrintCommandLineFlags -XX:+UseCompressedClassPointers -XX:+UseCompressedOops -XX:-UseLargePagesIndividualAllocation -XX:+UseParallelGC`
+其中 `-XX:+UseCompressedClassPointers` 就是表示开启了压缩指针命令， 将类型指针的占用压缩成 4 字节
+使用 JVM 指令 `-XX:-PrintCommandLineFlags` 可以关闭 压缩指针
+
+## 12. Synchronized 与锁升级
+
+由对象 Header 中的 Mark Word 根据锁标志位的不同而被复用以及锁升级策略
+
+在 Java5 之前，`Synchronized` 重量级锁，Java 线程 用 `native void start0()` 调用操作系统原生线程，当需要阻塞或者唤醒一个线程需要操作系统介入，在操作系统中即用户态和内核态切换，消耗大量系统资源，用户态的寄存器，存储空间等上下文需要保存，在系统内核态调用结束后再切换回用户态继续工作
+每个对象都可以成为锁，其实也就是每个对象都是一个 `ObjectMonitor`，源码中给每个对象都带了一个内部锁，而这个锁 `Monitor` 本质是依赖于底层操作系统 `Mutex Lock` 实现，需要用户态和内核态切换，成本非常高
+
+Java6 之后引入了轻量级锁和偏向锁
+
+### 12.1 无锁
+
+【对象标记 Mark Word】
+【25bit - unused】
+【31bit - hashcode】
+【1bit - unused】
+【4bit - 分代age】
+【1bit - 偏向锁【0】
+【2bit - 锁标志位【0】【1】
 
