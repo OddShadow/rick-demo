@@ -545,20 +545,138 @@ Space losses: 0 bytes internal + 4 bytes external = 4 bytes total
 
 ## 12. Synchronized 与锁升级
 
-由对象 Header 中的 Mark Word 根据锁标志位的不同而被复用以及锁升级策略
+在 Java5 之前，`Synchronized` 是操作系统级别的重量级锁，Java6 之后引入了轻量级锁和偏向锁
 
-在 Java5 之前，`Synchronized` 重量级锁，Java 线程 用 `native void start0()` 调用操作系统原生线程，当需要阻塞或者唤醒一个线程需要操作系统介入，在操作系统中即用户态和内核态切换，消耗大量系统资源，用户态的寄存器，存储空间等上下文需要保存，在系统内核态调用结束后再切换回用户态继续工作
-每个对象都可以成为锁，其实也就是每个对象都是一个 `ObjectMonitor`，源码中给每个对象都带了一个内部锁，而这个锁 `Monitor` 本质是依赖于底层操作系统 `Mutex Lock` 实现，需要用户态和内核态切换，成本非常高
+解释：Java 线程调用 `native void start0()` 方法，底层是调用操作系统原生线程，当需要阻塞或者唤醒一个线程时，就需要操作系统介入，CPU 从用户态切换为内核态，保存用户态的寄存器，存储空间等上下文，这个过程消耗大量系统资源，在系统内核态调用结束后，还原上下文再切换回用户态继续工作。如果同步代码块中的代码很简单，那么可能切换状态的时间比执行代码的时间更长。
 
-Java6 之后引入了轻量级锁和偏向锁
+每个对象都可以成为锁
+
+解释：其实也就是每个对象都是一个 `ObjectMonitor`，源码中给每个对象都带了一个内部锁，而这个锁 `Monitor` 又被称为管程，本质是依赖于底层操作系统 `Mutex Lock` 实现，需要用户态和内核态切换，成本非常高
+
+Monitor、Java 对象、线程
+
+如果 Java 对象被一个线程锁住
+就是 Java 对象的 Mark Word 中的 LockWord 指向了 Monitor 的起始地址，Monitor 的 Owner 字段会存放用户相关对象锁的线程 ID
 
 ### 12.1 无锁
 
-【对象标记 Mark Word】
-【25bit - unused】
-【31bit - hashcode】
-【1bit - unused】
-【4bit - 分代age】
-【1bit - 偏向锁【0】
-【2bit - 锁标志位【0】【1】
+```java
+public class NoLock {
+    public static void main(String[] args) {
+        // 小端存储，64bit 高地址位置 存 高字节
+        Object obj = new Object();
+        System.out.println(Integer.toBinaryString(obj.hashCode())); // 调用才有
+        System.out.println(ClassLayout.parseInstance(obj).toPrintable());
+    }
+}
+```
 
+```java
+1110100 10100001 01000100 10000010
+java.lang.Object object internals:
+ OFFSET  SIZE   TYPE DESCRIPTION                               VALUE
+      0     4        (object header)                           01 82 44 a1 (00000001 10000010 01000100 10100001) (-1589345791)
+      4     4        (object header)                           74 00 00 00 (01110100 00000000 00000000 00000000) (116)
+      8     4        (object header)                           e5 01 00 f8 (11100101 00000001 00000000 11111000) (-134217243)
+     12     4        (loss due to the next object alignment)
+Instance size: 16 bytes
+Space losses: 0 bytes internal + 4 bytes external = 4 bytes total
+```
+
+无锁状态，64bit 虚拟机，小端模式存储，对应如下
+
+| 锁状态 | 25bit                        | 31bit                              | 1bit   | 4bit     | 1bit       | 2bit         |
+| ------ | ---------------------------- | ---------------------------------- | ------ | -------- | ---------- | ------------ |
+| 无锁   | unused                       | HashCode - 调用才有                | unused | 分代年龄 | 偏向锁 - 0 | 锁标志 - 0 1 |
+|        | 0 00000000 00000000 00000000 | 1110100 10100001 01000100 10000010 | 0      | 0000     | 0          | 01           |
+
+### 12.2 偏向锁
+
+偏向锁适用在单线程竞争中
+线程A第一次获得锁后，修改 Mark Word 中的偏向锁 ID，偏向模式
+如果不存在其它线程竞争，那么持有偏向锁的线程不需要同步操作，避免了上下文切换
+
+锁在第一次被拥有时，只需要在对象头中记录下偏向线程ID，这样代表偏向线程一直持有着锁，如果下次同一个线程进入同一个锁
+如果线程ID 相等，即检查到对象头中存放的是自己的线程ID，则无需上下文切换，直接进入同步
+如果线程ID 不相等，则表示发生了锁竞争，则尝试使用 CAS 把对象头线程ID 更新为自己的线程ID
+竞争成功，表示之前的线程不存在，更新线程ID，锁无需升级，依然是偏向锁
+竞争失败，则需要升级成轻量级锁才可以保证安全性，等待到全局安全点，撤销偏向锁
+偏向锁只有需要其他线程竞争时，持有偏向锁的线程才会释放锁，线程本身不会主动释放锁
+
+偏向锁的撤销
+一、第一个线程正在执行 `synchronized` 方法，处于同步代码块中，其它线程竞争，偏向锁被撤销，并锁升级，此时轻量级锁由原持有偏向锁的线程持有，同步代码继续执行，而竞争的线程则会进入自旋等待获取改轻量级锁
+二、第一个线程执行完成 `synchronized` 方法，退出同步代码块，则讲对象头设置成无锁状态，撤销偏向锁，重新偏向
+
+`https://segmentfault.com/a/1190000041194920`
+
+`-XX:+UseBiasedLocking -XX:BiasedLockingStartupDelay=0`
+
+```java
+-XX:+PrintFlagsInitial | grep BiasedLock*
+intx BiasedLockingStartupDelay  = 4000 // 线程启用偏向锁有4秒延迟
+bool UseBiasedLocking           = true // 偏向锁默认打开, 如果关闭则直接升级为轻量级锁
+```
+
+```java
+// -XX:BiasedLockingStartupDelay=0
+public class BiasedLock {
+    public static void main(String[] args) {
+        Object obj = new Object();
+        synchronized (obj) {
+            System.out.println(ClassLayout.parseInstance(obj).toPrintable());
+        }
+    }
+}
+```
+
+```java
+public class BiasedLock02 {
+    public static void main(String[] args) {
+        try {
+            TimeUnit.SECONDS.sleep(5);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        Object obj = new Object();
+        synchronized (obj) {
+            System.out.println(ClassLayout.parseInstance(obj).toPrintable());
+        }
+    }
+}
+```
+
+```java
+java.lang.Object object internals:
+ OFFSET  SIZE   TYPE DESCRIPTION                               VALUE
+      0     4        (object header)                           05 98 3b 51 (00000101 10011000 00111011 01010001) (1362860037)
+      4     4        (object header)                           af 01 00 00 (10101111 00000001 00000000 00000000) (431)
+      8     4        (object header)                           e5 01 00 f8 (11100101 00000001 00000000 11111000) (-134217243)
+     12     4        (loss due to the next object alignment)
+Instance size: 16 bytes
+Space losses: 0 bytes internal + 4 bytes external = 4 bytes total
+```
+
+偏向锁状态，64bit 虚拟机，小端模式存储，对应如下
+
+| 锁状态 | 54bit                                                        | 2bit  | 1bit   | 4bit     | 1bit       | 2bit         |
+| ------ | ------------------------------------------------------------ | ----- | ------ | -------- | ---------- | ------------ |
+| 偏向锁 | 当前线程指针 JavaThread* 就是线程ID                          | Epoch | unused | 分代年龄 | 偏向锁 - 1 | 锁标志 - 0 1 |
+|        | 00000000 00000000 00000001 10101111 01010001 00111011 100110 | 00    | 0      | 0000     | 1          | 01           |
+
+### 12.3 轻量级锁
+
+轻量级锁场景
+多线程竞争，但是任意时刻最多只有一个线程竞争，即不存在锁竞争太过激烈的情况，没有线程阻塞
+
+轻量级锁状态，64bit 虚拟机，小端模式存储，对应如下
+
+| 锁状态 | 62bit                           | 2bit         |
+| ------ | ------------------------------- | ------------ |
+| 偏向锁 | 指向线程栈中 Lock Record 的指针 | 锁标志 - 0 0 |
+|        |                                 | 00           |
+
+### 理解
+
+高并发下，同步调用需要考虑锁带来的损耗问题，使用锁可以实现数据安全性，但是会导致性能下降，无锁能够提升程序性能，但是会导致并发安全问题，两者之间需要平衡。
+由对象头中 Mark Word 根据锁标志位的不同而被复用，以及锁升级策略
+锁的升级过程，无锁，偏向锁，轻量级锁，重量级锁
