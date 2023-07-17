@@ -69,6 +69,7 @@ public abstract class MyAbstractQueuedSynchronizer extends AbstractOwnableSynchr
             selfInterrupt();
         }
     }
+    
     static void selfInterrupt() {
         Thread.currentThread().interrupt();
     }

@@ -5,9 +5,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
-public class ReentrantLock implements Lock, Serializable {
-    public ReentrantLock() {sync = new NonfairSync();} // 默认构造参数 非公平锁
-    public ReentrantLock(boolean fair) {sync = fair ? new FairSync() : new NonfairSync();} // 构造参数 公平锁 非公平锁
+public class MyReentrantLock implements Lock, Serializable {
+    public MyReentrantLock() {sync = new NonfairSync();} // 默认构造参数 非公平锁
+    public MyReentrantLock(boolean fair) {sync = fair ? new FairSync() : new NonfairSync();} // 构造参数 公平锁 非公平锁
     private final Sync sync; // 构造一个 sync 继承于 AbstractQueuedSynchronizer
     
     abstract static class Sync extends MyAbstractQueuedSynchronizer {
@@ -32,6 +32,7 @@ public class ReentrantLock implements Lock, Serializable {
         protected final boolean tryRelease(int releases) {
             int c = getState() - releases;
             if (Thread.currentThread() != getExclusiveOwnerThread()) {
+                // 独占线程为当前线程才可以 unlock
                 throw new IllegalMonitorStateException();
             }
             boolean free = false;

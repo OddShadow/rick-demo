@@ -680,3 +680,19 @@ Space losses: 0 bytes internal + 4 bytes external = 4 bytes total
 高并发下，同步调用需要考虑锁带来的损耗问题，使用锁可以实现数据安全性，但是会导致性能下降，无锁能够提升程序性能，但是会导致并发安全问题，两者之间需要平衡。
 由对象头中 Mark Word 根据锁标志位的不同而被复用，以及锁升级策略
 锁的升级过程，无锁，偏向锁，轻量级锁，重量级锁
+
+## 13. AQS 源码分析
+
+![](https://raw.githubusercontent.com/OddShadow/images/main/rick-demo/202307172250145.png)
+
+## 14. ReentrantLock` `ReentrantReadWriteLock` `StampedLock
+
+ReentrantReadWriteLock
+仅被多个读线程访问，或者仅被一个写线程访问
+
+对于读多写少场景，读共享可以提高并发性能
+
+注意点
+
+1. 写饥饿
+2. 锁降级
