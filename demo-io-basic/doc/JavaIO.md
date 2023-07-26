@@ -48,7 +48,32 @@ import java.io.FileWriter; // character based 写文件，连续访问
 
 ## Networking
 
-## InputStream & OutputStream
+## File
+
+用于文件/目录元数据信息处理，不涉及文件内容处理
+
+创建 File 类不代表文件/目录已经存在 `File file = new File("/test")`
+
+1. `boolean exists()`
+   检查文件或者目录是否存在
+2. `boolean mkdir()` 
+   如果父级目录存在，指定目录不存在，则创建对应的目录，返回ture，其它情况都返回false
+3. `boolean mkdirs()` 
+   如果指定目录不存在，则递归创建，返回ture，其它情况返回false
+4. `long length()` 
+   读取文件内容长度，不支持目录
+5. `boolean renameTo(File dest)` 
+   重命名或移动文件/目录
+6. `boolean delete()`
+   删除一个文件/目录为空的目录
+7. `boolean isDirectory()` 
+   检查路径是文件还是目录
+8. `String[] list()` & `File[] listFiles()` 
+   读取目录中的文件列表
+
+## Byte Based Stream
+
+### 1. InputStream & OutputStream
 
 `InputStream` 和 `OutputStream` 是抽象类，也是 Byte Based 的基础类
 
@@ -73,7 +98,7 @@ import java.io.FileWriter; // character based 写文件，连续访问
 4. `void flush()` 刷新内存到硬盘中，防止缓存未持久化
 5. `void close()` 关闭流
 
-## FileInputStream & FileOutputStream
+### 2. FileInputStream & FileOutputStream
 
 `FileInputStream`
 
@@ -87,7 +112,7 @@ import java.io.FileWriter; // character based 写文件，连续访问
 3. `FileOutputStream(File file)` 传入 File 创建，默认 overwrite 文件
 4. `FileOutputStream(File file)` 传入 File 创建，可选 overwrite 或者 append
 
-## RandomAccessFile
+### 3. RandomAccessFile
 
 用于文件随机访问
 
@@ -105,34 +130,11 @@ import java.io.FileWriter; // character based 写文件，连续访问
 1. `void seek(long pos)` 设置文件位置指针
 2. `long getFilePointer()` 获取文件位置指针
 
-## File
-
-用于文件/目录元数据信息处理，不涉及文件内容处理
-
-创建 File 类不代表文件/目录已经存在 `File file = new File("/test")`
-
-1. `boolean exists()`
-检查文件或者目录是否存在
-2. `boolean mkdir()` 
-如果父级目录存在，指定目录不存在，则创建对应的目录，返回ture，其它情况都返回false
-3. `boolean mkdirs()` 
-如果指定目录不存在，则递归创建，返回ture，其它情况返回false
-4. `long length()` 
-读取文件内容长度，不支持目录
-5. `boolean renameTo(File dest)` 
-重命名或移动文件/目录
-6. `boolean delete()`
-删除一个文件/目录为空的目录
-7. `boolean isDirectory()` 
-检查路径是文件还是目录
-8. `String[] list()` & `File[] listFiles()` 
-读取目录中的文件列表
-
-## PipedInputStream & PipedOutputStream
+### 4. PipedInputStream & PipedOutputStream
 
 用户同一个 JVM 中不同线程间通信，很少用
 
-## ByteArrayInputStream & ByteArrayOutputStream
+### 5. ByteArrayInputStream & ByteArrayOutputStream
 
 `ByteArrayInputStream` 内置一个 `byte[] buffer` 引用作为数据源，实际的 buffer 是构造函数传入的
 
@@ -145,11 +147,11 @@ import java.io.FileWriter; // character based 写文件，连续访问
 2. `ByteArrayOutputStream(int size)` 指定 内置 buffer 大小
 3. `byte[] toByteArray()` 拿到内置 buffer 数据源，即写入数据
 
-## FilterInputStream & FilterOutputStream
+### 6. FilterInputStream & FilterOutputStream
 
 过滤器，用处不大
 
-## BufferedInputStream & BufferedOutputStream
+### 7. BufferedInputStream & BufferedOutputStream
 
 1. `BufferedInputStream(InputStream in)` 创建一个缓冲流
 2. `BufferedInputStream(InputStream in, int size)` 创建一个指定大小的缓冲流
@@ -158,9 +160,74 @@ import java.io.FileWriter; // character based 写文件，连续访问
 
 note: 这个流的缓存并不复用
 
-## PushbackInputStream
+### 8. PushbackInputStream
 
-## SequenceInputStream
+从流中读到的字节或者任意字节可以回推回流中，类似栈结构，目的是解析数据时，需要把数据拿出来看一下
 
-## DataInputStream & DataOutputStream
+1. `PushbackInputStream(InputStream in)`
+2. `PushbackInputStream(InputStream in, int size)` 加上可回推的字节数限制
+3. `unread(int b)` 回推任意字节到流中
+4. `void unread(byte[] b)`
+5. `unread(byte[] b, int off, int len)` 
 
+### 9. SequenceInputStream
+
+组合多个流排队输出
+
+1. `SequenceInputStream(Enumeration<? extends InputStream> e)`
+2. `SequenceInputStream(InputStream s1, InputStream s2)`
+
+### 10. DataInputStream & DataOutputStream
+
+支持八种基本数据类型的读写，无符号数读写，以及 UTF 字符读写
+
+1. `DataInputStream(InputStream in)`
+2. ``DataOutputStream(OutputStream out)`
+
+### 11. PrintStream
+
+### 12. ObjectInputStream & ObjectOutputStream
+
+最常用的就是序列化对象，对象需要实现 `Serializable` 接口
+
+## Character Based Stream
+
+### 1. Reader & Writer
+
+### 2. InputStreamReader & OutputStreamWriter
+
+用于将指定字节流转成字符流，可以指定字符集
+
+### 3. PipedReader & PipedWriter
+
+类似 PipedInputStream & PipedOutputStream
+
+### 4. CharArrayReader & CharArrayWriter
+
+类似 ByteArrayInputStream & ByteArrayOutputStream
+
+### 5. BufferedReader & BufferedWriter
+
+类似 BufferedInputStream & BufferedOutputStream
+
+### 6. FilterReader & FilterWriter
+
+类似 FilterInputStream & FilterOutputStream
+
+### 7. PushbackReader
+
+类似 PushbackInputStream
+
+### 8. LineNumberReader
+
+包装类，主要加入了读取行号的功能，读错误文件可以定位到行号
+
+### 9. StreamTokenizer
+
+用于识别单词，数字，标识符，可以统计单词总数，文章单词出现次数之类操作
+
+### 10. PrintWriter
+
+### 11. StringReader & StringWriter
+
+字符串转 Reader，字符串转 Writer

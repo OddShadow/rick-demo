@@ -1,4 +1,4 @@
-package org.example.pipe;
+package org.example.bytebased.pipe;
 
 import java.io.IOException;
 import java.io.PipedInputStream;

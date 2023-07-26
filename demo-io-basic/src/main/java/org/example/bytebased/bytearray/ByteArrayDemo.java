@@ -1,4 +1,4 @@
-package org.example.bytearray;
+package org.example.bytebased.bytearray;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

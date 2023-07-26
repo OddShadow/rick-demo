@@ -1,4 +1,4 @@
-package org.example.randomaccess;
+package org.example.bytebased.randomaccess;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
