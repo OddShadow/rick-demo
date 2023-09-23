@@ -14,6 +14,8 @@
         <module>demo-juc-advanced</module>
         <module>demo-juc-queue</module>
         <module>demo-io-basic</module>
+        <module>demo-jvm</module>
+        <module>demo-date</module>
     </modules>
 
 </project>
